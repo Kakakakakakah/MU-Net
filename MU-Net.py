@@ -520,23 +520,23 @@ class BasicLayer(nn.Module):
 class AMM(nn.Module):
     def __init__(self, dim=64):
         super().__init__()
-        self.pa = nn.Sequential(nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim),
+        self.spatal_branch = nn.Sequential(nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim),
                                 nn.Conv2d(dim, dim // 16, kernel_size=1),
                                 nn.BatchNorm2d(dim // 16),
                                 nn.ReLU(),
                                 nn.Conv2d(dim // 16, 1, kernel_size=1),
                                 nn.Sigmoid())
 
-        self.ca = nn.Sequential(nn.AdaptiveAvgPool2d(1),
+        self.channel_branch = nn.Sequential(nn.AdaptiveAvgPool2d(1),
                                 Conv(dim, dim//16, kernel_size=1),
                                 nn.ReLU(),
                                 Conv(dim//16, dim, kernel_size=1),
                                 nn.Sigmoid())
 
     def forward(self, x):
-        pa = self.pa(x) * x
-        ca = self.ca(x) * x
-        x = pa + ca
+        spatal_branch = self.spatal_branch(x) * x
+        channel_branch= self.channel_branch(x) * x
+        x = spatal_branch  + channel_branch
         return x
 
 
